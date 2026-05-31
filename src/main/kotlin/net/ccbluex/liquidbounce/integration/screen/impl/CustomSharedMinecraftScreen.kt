@@ -21,21 +21,18 @@ package net.ccbluex.liquidbounce.integration.screen.impl
 
 import net.ccbluex.liquidbounce.integration.screen.CustomScreenType
 import net.ccbluex.liquidbounce.integration.screen.ScreenManager
-import net.ccbluex.liquidbounce.integration.theme.Theme
-import net.ccbluex.liquidbounce.integration.theme.ThemeManager
 import net.ccbluex.liquidbounce.utils.text.asPlainText
 import net.ccbluex.liquidbounce.utils.client.mc
 import net.minecraft.client.gui.screens.Screen
 
 class CustomSharedMinecraftScreen(
     val screenType: CustomScreenType,
-    private val theme: Theme = ThemeManager.getScreenLocation(screenType).theme,
     val originalScreen: Screen? = null,
     val parentScreen: Screen? = mc.screen
 ) : Screen("VS-${screenType.routeName.uppercase()}".asPlainText()) {
 
     override fun init() {
-        ScreenManager.openScreen(theme, screenType)
+        ScreenManager.openScreen(screenType)
     }
 
     override fun onClose() {

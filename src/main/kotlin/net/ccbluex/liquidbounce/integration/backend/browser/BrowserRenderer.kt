@@ -24,6 +24,7 @@ import net.ccbluex.liquidbounce.event.events.FramebufferResizeEvent
 import net.ccbluex.liquidbounce.event.events.GameRenderEvent
 import net.ccbluex.liquidbounce.event.events.OverlayRenderEvent
 import net.ccbluex.liquidbounce.event.events.ResourceReloadEvent
+import net.ccbluex.liquidbounce.event.events.ScaleFactorChangeEvent
 import net.ccbluex.liquidbounce.event.events.ScreenEvent
 import net.ccbluex.liquidbounce.event.events.ScreenRenderEvent
 import net.ccbluex.liquidbounce.event.handler
@@ -44,6 +45,7 @@ import java.lang.AutoCloseable
 class BrowserRenderer(val browser: Browser) : EventListener, AutoCloseable {
 
     private var rendered = false
+    private var fullscreenViewportSynced = false
 
     @Suppress("unused")
     private val gameRenderHandler = handler<GameRenderEvent>(priority = MODEL_STATE) {
@@ -51,8 +53,13 @@ class BrowserRenderer(val browser: Browser) : EventListener, AutoCloseable {
     }
 
     @Suppress("unused")
-    private val windowResizeHandler = handler<FramebufferResizeEvent> { event ->
-        browser.update(event.width, event.height)
+    private val windowResizeHandler = handler<FramebufferResizeEvent> {
+        updateFullscreenViewport(force = true)
+    }
+
+    @Suppress("unused")
+    private val scaleFactorHandler = handler<ScaleFactorChangeEvent> {
+        updateFullscreenViewport(force = true)
     }
 
     @Suppress("unused")
@@ -94,17 +101,33 @@ class BrowserRenderer(val browser: Browser) : EventListener, AutoCloseable {
      * Renders a browser tab with proper scaling
      */
     private fun render(context: GuiGraphicsExtractor) {
-        val texture = browser.texture ?: return
-        val scaleFactor = mc.window.guiScale.toFloat()
+        updateFullscreenViewport()
 
+        val texture = browser.texture ?: return
         val viewport = browser.viewport
-        val x = viewport.x.toFloat() / scaleFactor
-        val y = viewport.y.toFloat() / scaleFactor
-        val w = viewport.width.toFloat() / scaleFactor
-        val h = viewport.height.toFloat() / scaleFactor
+        val x = viewport.x.toFloat()
+        val y = viewport.y.toFloat()
+        val w = viewport.width.toFloat()
+        val h = viewport.height.toFloat()
 
         renderTexture(context, texture, x, y, w, h)
         rendered = true
+    }
+
+    private fun updateFullscreenViewport(force: Boolean = false) {
+        if (!browser.viewport.fullScreen) {
+            return
+        }
+
+        val viewport = BrowserViewport.FULLSCREEN
+        if (!force && fullscreenViewportSynced &&
+            browser.viewport.width == viewport.width && browser.viewport.height == viewport.height
+        ) {
+            return
+        }
+
+        browser.update(viewport.width, viewport.height)
+        fullscreenViewportSynced = true
     }
 
     @Suppress("LongParameterList")

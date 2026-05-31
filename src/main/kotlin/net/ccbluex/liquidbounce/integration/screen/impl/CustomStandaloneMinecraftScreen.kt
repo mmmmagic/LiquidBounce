@@ -22,7 +22,7 @@ package net.ccbluex.liquidbounce.integration.screen.impl
 import net.ccbluex.liquidbounce.additions.setPosition
 import net.ccbluex.liquidbounce.integration.screen.CustomScreenType
 import net.ccbluex.liquidbounce.integration.screen.ScreenManager
-import net.ccbluex.liquidbounce.integration.theme.ThemeManager
+import net.ccbluex.liquidbounce.integration.ui.FixedClientUi
 import net.ccbluex.liquidbounce.utils.text.asPlainText
 import net.ccbluex.liquidbounce.utils.client.mc
 import net.minecraft.client.gui.screens.Screen
@@ -31,7 +31,7 @@ class CustomStandaloneMinecraftScreen(
     val screenType: CustomScreenType
 ) : Screen("VS-${screenType.routeName.uppercase()}".asPlainText()), AutoCloseable {
 
-    val browser = ThemeManager.openInputAwareImmediate(
+    val browser = FixedClientUi.openInputAwareImmediate(
         screenType,
         true,
         priority = 20,

@@ -26,7 +26,7 @@ import net.ccbluex.liquidbounce.integration.backend.browser.BrowserSettings
 import net.ccbluex.liquidbounce.integration.backend.isBrowserDisabled
 import net.ccbluex.liquidbounce.integration.screen.CustomScreenType
 import net.ccbluex.liquidbounce.integration.screen.ScreenManager
-import net.ccbluex.liquidbounce.integration.theme.ThemeManager
+import net.ccbluex.liquidbounce.integration.ui.FixedClientUi
 
 class CustomOverlay(
     private val screenType: CustomScreenType,
@@ -61,7 +61,7 @@ class CustomOverlay(
             return
         }
 
-        browser = ThemeManager.openImmediate(
+        browser = FixedClientUi.openImmediate(
             screenType,
             true,
             browserSettings

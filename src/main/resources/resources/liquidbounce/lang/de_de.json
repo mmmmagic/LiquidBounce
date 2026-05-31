@@ -243,6 +243,7 @@
   "liquidbounce.commandManager.parameterRequired": "Parameter \"%s\" wird erwartet.",
   "liquidbounce.commandManager.unknownCommand": "Befehl \"%s\" nicht gefunden.",
   "liquidbounce.commandManager.unknownParameter": "Unbekannter Parameter \"%s\".",
+  "liquidbounce.command.api.error.notLoggedIn": "You must be logged in to perform this action.",
   "liquidbounce.generic.disabled": "Deaktiviert",
   "liquidbounce.generic.enabled": "Aktiviert",
   "liquidbounce.generic.error": "Fehler",
@@ -290,7 +291,6 @@
   "liquidbounce.module.autoConfig.description": "Wählt automatisch die richtige Konfiguration für den Server aus, auf dem du spielst.",
   "liquidbounce.module.autoDisable.description": "Deaktiviert bestimmte Module automatisch.",
   "liquidbounce.module.autoDodge.description": "Weicht Projektilen wie Pfeilen automatisch aus.",
-  "liquidbounce.module.autoFarm.description": "Farmt Pflanzen automatisch.",
   "liquidbounce.module.autoFish.description": "Fängt automatisch Fische, wenn eine Angel verwendet wird.",
   "liquidbounce.module.autoBuff.description": "Stärkt dich automatisch mit verschiedenen Gegenständen (z.B. Heil Tränke).",
   "liquidbounce.module.autoLeave.description": "Verlässt den Server automatisch, wenn deine Gesundheit einen bestimmten Wert unterschreitet.",
@@ -305,7 +305,6 @@
   "liquidbounce.module.blockBounce.description": "Ermöglicht dir, auf z.B Schleimblöcken höher zu hüpfen.",
   "liquidbounce.module.blockESP.description": "Ermöglicht dir, ausgewählte Blöcke durch Wände hindurch zu sehen.",
   "liquidbounce.module.blockWalk.description": "Ermöglicht das Gehen auf nicht vollständigen Blöcken.",
-  "liquidbounce.module.breadcrumbs.description": "Hinterlässt eine Spur.",
   "liquidbounce.module.antiVoid.description": "Schützt dich davor, ins Void zu fallen.",
   "liquidbounce.module.cameraClip.description": "Ermöglicht dir, mit der Kamera im Third-Person-Modus durch Blöcke zu schauen.",
   "liquidbounce.module.capeTransfer.description": "Überträgt dir den Spenderumhang automatisch auf deinen aktuellen Account. Spende unter liquidbounce.net/donate.",
@@ -480,7 +479,6 @@
   "liquidbounce.module.antiHunger.messages.warnBreak": "Du zerstörst einen Block, was zu Hunger führen könnte.",
   "liquidbounce.module.liquidChat.description": "Ermöglicht dir, mit anderen LiquidBounce Benutzern zu chatten.",
   "liquidbounce.module.consoleSpammer.description": "Spamt die Konsole des Servers mit Fehlermeldungen zu.",
-  "liquidbounce.module.autoQueue.description": "Tritt automatisch auf Mini Game Servern dem Spiel bei.",
   "liquidbounce.module.chams.description": "Rendert Spieler durch Wände.",
   "liquidbounce.module.bungeeSpoofer.description": "Ermöglicht dir die Verbindung zu einem Bungee-Cord-geschützten Subserver, indem du den BungeeCord-Handshake vortäuschst.",
   "liquidbounce.module.customAmbience.description": "Ermöglicht dir, die Weltatmosphäre zu ändern.",
@@ -578,8 +576,6 @@
   "liquidbounce.command.models.subcommand.delete.result.modelNotFound": "❌ Das Modell %s konnte nicht gefunden werden.",
   "liquidbounce.command.models.subcommand.delete.result.modelDeleted": "✔ Das Modell %s wurde gelöscht.",
 
-  "liquidbounce.unsupportedDeepLearning": "❌ Die KI-Engine wurde nicht initialisiert. Dein System wird möglicherweise nicht unterstützt.",
-  "liquidbounce.rotationSystem.angleSmooth.ai.fallback": "Daher wird auf %s angle smoothing zurückgegriffen.",
 
   "liquidbounce.module.particles.description": "Zeigt Partikel beim Angriff eines z.B. Spielers an.",
   "liquidbounce.module.elytraTarget.description": "Verfolgt dein Ziel mit einer Elytra.",
@@ -633,7 +629,6 @@
   "liquidbounce.module.easyPearl.description": "Wirft eine Enderperle dorthin, wo du hinschaust.",
   "liquidbounce.module.easyPearl.messages.noInReachWarning": "Du zielst weiter, als die Enderperle fliegen kann.",
   "liquidbounce.commandManager.commandExecuting": "Der Befehl \"%s\" läuft bereits, bitte warten...",
-  "liquidbounce.module.skinChanger.description": "Verbirgt den echten Skin des Spielers clientseitig.",
   "liquidbounce.module.itemScroller.description": "Bewegt Items im Inventar schnell hin und her, wenn Shift und die linke Maustaste gedrückt werden.",
   "liquidbounce.command.autotranslate.subcommand.language.description": "Zeigt deine Sprache an.",
   "liquidbounce.command.autotranslate.subcommand.language.result.code": "Deine Sprache ist '%s' (%s).",
@@ -649,7 +644,6 @@
   "liquidbounce.module.translation.description": "Einrichten eines automatischen Übersetzers für den Client.",
   "liquidbounce.module.betterTitle.description": "Verbesserungen am Titel und Untertitel.",
   "liquidbounce.module.potionSpoof.description": "Erlaubt dem Spieler, Effekte zu erhalten, ohne einen Trank zu benutzen.",
-  "liquidbounce.module.macros.description": "Ermöglicht dir, per benutzerdefinierter Taste Chat-Nachrichten oder Item-Aktionen auszuführen.",
-  "liquidbounce.module.newChunks.description": "Hebt Chunks hervor, die wahrscheinlich neu generiert wurden."
+  "liquidbounce.module.macros.description": "Ermöglicht dir, per benutzerdefinierter Taste Chat-Nachrichten oder Item-Aktionen auszuführen."
 
 }

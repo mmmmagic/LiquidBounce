@@ -44,8 +44,8 @@ class InternetExplorerScreen(val url: String, title: Component = PlainText.EMPTY
         val viewport = BrowserViewport(
             20,
             20,
-            (width - 20) * mc.window.guiScale,
-            (height - 50) * mc.window.guiScale
+            width - 20,
+            height - 50
         )
 
         if (browserBrowsers.isEmpty()) {

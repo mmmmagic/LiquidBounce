@@ -24,16 +24,11 @@ import com.mojang.authlib.GameProfile;
 import net.ccbluex.liquidbounce.features.module.modules.exploit.disabler.ModuleDisabler;
 import net.ccbluex.liquidbounce.features.module.modules.exploit.disabler.disablers.DisablerVulcanScaffold;
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleNoFov;
-import net.ccbluex.liquidbounce.features.module.modules.render.ModuleSkinChanger;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.PlayerSkin;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(AbstractClientPlayer.class)
 public abstract class MixinAbstractClientPlayer extends Player {
@@ -58,24 +53,4 @@ public abstract class MixinAbstractClientPlayer extends Player {
         return original;
     }
 
-    @Inject(method = "getSkin", at = @At("TAIL"), cancellable = true)
-    private void injectCustomSkinTextures(CallbackInfoReturnable<PlayerSkin> cir) {
-        Minecraft client = Minecraft.getInstance();
-        if (client.level == null || client.player == null) return;
-
-        if (this.getUUID().equals(client.player.getUUID()) && ModuleSkinChanger.shouldApplyChanges()) {
-            var customSupplier = ModuleSkinChanger.INSTANCE.getSkinTextures();
-            if (customSupplier != null) {
-                PlayerSkin original = cir.getReturnValue();
-                PlayerSkin customTextures = customSupplier.get();
-                cir.setReturnValue(new PlayerSkin(
-                        customTextures.body(),
-                        original.cape(),
-                        customTextures.elytra(),
-                        customTextures.model(),
-                        customTextures.secure()
-                ));
-            }
-        }
-    }
 }

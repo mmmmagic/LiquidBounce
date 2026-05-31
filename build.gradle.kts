@@ -17,8 +17,6 @@
  * along with LiquidBounce. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import com.github.gradle.node.npm.task.NpmTask
-import com.github.gradle.node.task.NodeTask
 import dev.detekt.gradle.DetektCreateBaselineTask
 import groovy.json.JsonOutput
 import org.gradle.kotlin.dsl.support.listFilesOrdered
@@ -28,7 +26,6 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.gradleGitProperties)
     alias(libs.plugins.detekt)
-    alias(libs.plugins.nodeGradle)
     alias(libs.plugins.dokka)
 }
 
@@ -138,10 +135,6 @@ dependencies {
     jij(libs.polyglot.js)
     jij(libs.polyglot.tools)
 
-    // Machine Learning
-    jij(libs.djl.api)
-    jij(libs.djl.pytorch)
-
     // HTTP library
     jij(libs.bundles.okhttp)
 
@@ -170,8 +163,6 @@ dependencies {
 addResolvedDependencies(jij, "compileOnly", "include", "api")
 
 tasks.processResources {
-    dependsOn("bundleTheme")
-
     val modVersion = providers.gradleProperty("mod_version")
     val minecraftVersion = providers.gradleProperty("mod_mc_version")
     val fabricVersion = libs.versions.fabric.api
@@ -217,66 +208,6 @@ tasks.processResources {
                 "viafabricplus_version" to viafabricplusVersion.get()
             )
         )
-    }
-}
-
-// The following code will include the theme into the build
-
-tasks.register<NpmTask>("npmInstallTheme") {
-    workingDir = file("src-theme")
-    args.set(listOf("i"))
-    doLast {
-        logger.info("Successfully installed dependencies for theme")
-    }
-    inputs.files("src-theme/package.json", "src-theme/package-lock.json")
-    outputs.dir("src-theme/node_modules")
-}
-
-tasks.register<NpmTask>("buildTheme") {
-    dependsOn("npmInstallTheme")
-    workingDir = file("src-theme")
-    args.set(listOf("run", "build"))
-    doLast {
-        logger.info("Successfully build theme")
-    }
-
-    inputs.files(
-        "src-theme/package.json",
-        "src-theme/package-lock.json",
-        "src-theme/bundle.cjs",
-        "src-theme/rollup.config.js"
-    )
-    inputs.dir("src-theme/src")
-    inputs.dir("src-theme/public")
-    outputs.dir("src-theme/dist")
-}
-
-tasks.register<NodeTask>("bundleTheme") {
-    dependsOn("buildTheme")
-    workingDir = file("src-theme")
-    script = file("src-theme/bundle.cjs")
-    doLast {
-        logger.info("Successfully attached theme to build")
-    }
-
-    // Incremental stuff
-    inputs.files(
-        "src-theme/package.json",
-        "src-theme/package-lock.json",
-        "src-theme/bundle.cjs",
-        "src-theme/rollup.config.js"
-    )
-    inputs.dir("src-theme/src")
-    inputs.dir("src-theme/public")
-    inputs.dir("src-theme/dist")
-    outputs.files("src-theme/resources/assets/liquidbounce/themes/liquidbounce.zip")
-}
-
-sourceSets {
-    main {
-        resources {
-            srcDirs("src-theme/resources")
-        }
     }
 }
 
@@ -388,10 +319,6 @@ tasks.jar {
 tasks.register<Copy>("copyZipInclude") {
     from("zip_include/")
     into("build/libs/zip")
-}
-
-tasks.named("sourcesJar") {
-    dependsOn("bundleTheme")
 }
 
 tasks.named("build") {

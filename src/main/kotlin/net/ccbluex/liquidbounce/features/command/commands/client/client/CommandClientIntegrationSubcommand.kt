@@ -21,7 +21,7 @@ package net.ccbluex.liquidbounce.features.command.commands.client.client
 import net.ccbluex.liquidbounce.features.command.builder.CommandBuilder
 import net.ccbluex.liquidbounce.integration.screen.CustomScreenType
 import net.ccbluex.liquidbounce.integration.screen.ScreenManager
-import net.ccbluex.liquidbounce.integration.theme.ThemeManager
+import net.ccbluex.liquidbounce.integration.ui.FixedClientUi
 import net.ccbluex.liquidbounce.utils.client.MessageMetadata
 import net.ccbluex.liquidbounce.utils.client.chat
 import net.ccbluex.liquidbounce.utils.client.copyable
@@ -52,7 +52,7 @@ object CommandClientIntegrationSubcommand {
         .alias("url")
         .handler {
             chat(variable("Client Integration"))
-            val baseUrl = ThemeManager.getScreenLocation().url
+            val baseUrl = FixedClientUi.url()
 
             chat(
                 regular("Base URL: ")
@@ -73,10 +73,8 @@ object CommandClientIntegrationSubcommand {
 
             chat(metadata = MessageMetadata(prefix = false))
             chat(regular("Integration Menu:"))
-            for (screenType in CustomScreenType.entries) {
-                val url = runCatching {
-                    ThemeManager.getScreenLocation(screenType, true)
-                }.getOrNull()?.url ?: continue
+            for (screenType in CustomScreenType.entries.filter(FixedClientUi::isSupported)) {
+                val url = FixedClientUi.url(screenType, true)
                 val upperFirstName = screenType.routeName.replaceFirstChar { it.uppercase() }
 
                 chat(

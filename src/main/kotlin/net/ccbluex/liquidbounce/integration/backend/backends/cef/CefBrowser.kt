@@ -116,6 +116,8 @@ class CefBrowser(
             val zoomLevel = value.getZoomLevel(quality)
 
             val viewRect = browserApi.getViewRect(null)
+            browserApi.zoomLevel = zoomLevel
+
             // Check if the browser dimensions have changed
             if (viewRect.width == scaledWidth && viewRect.height == scaledHeight) {
                 return
@@ -125,7 +127,6 @@ class CefBrowser(
             //   does not call [wasResized] and thus does not update the renderer.
             //   See: https://github.com/chromiumembedded/cef/issues/3826
             browserApi.resize(scaledWidth, scaledHeight)
-            browserApi.zoomLevel = zoomLevel
 
             // To ensure the texture is updated, we clear the renderer. This call invalidates the
             // current UI.

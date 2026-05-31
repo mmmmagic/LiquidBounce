@@ -39,7 +39,6 @@ object CommandClient : Command.Factory {
             .subcommand(CommandClientBrowserSubcommand.browserCommand())
             .subcommand(CommandClientIntegrationSubcommand.integrationCommand())
             .subcommand(CommandClientLanguageSubcommand.languageCommand())
-            .subcommand(CommandClientThemeSubcommand.themeCommand())
             .subcommand(CommandClientAppearanceSubcommand.appearanceCommand())
             .subcommand(CommandClientPrefixSubcommand.prefixCommand())
             .subcommand(CommandClientDestructSubcommand.destructCommand())

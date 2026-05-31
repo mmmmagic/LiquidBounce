@@ -34,7 +34,6 @@ import net.ccbluex.liquidbounce.event.sequenceHandler
 import net.ccbluex.liquidbounce.event.tickUntil
 import net.ccbluex.liquidbounce.features.module.modules.combat.ModuleAimbot
 import net.ccbluex.liquidbounce.features.module.modules.combat.ModuleAutoClicker
-import net.ccbluex.liquidbounce.features.module.modules.world.automobheal.AutoMobHeal
 import net.ccbluex.liquidbounce.features.module.modules.combat.ModuleAutoLeave
 import net.ccbluex.liquidbounce.features.module.modules.combat.ModuleAutoRod
 import net.ccbluex.liquidbounce.features.module.modules.combat.ModuleAutoShoot
@@ -175,7 +174,6 @@ import net.ccbluex.liquidbounce.features.module.modules.player.ModuleReplenish
 import net.ccbluex.liquidbounce.features.module.modules.player.ModuleSmartEat
 import net.ccbluex.liquidbounce.features.module.modules.player.antivoid.ModuleAntiVoid
 import net.ccbluex.liquidbounce.features.module.modules.player.autobuff.ModuleAutoBuff
-import net.ccbluex.liquidbounce.features.module.modules.player.autoqueue.ModuleAutoQueue
 import net.ccbluex.liquidbounce.features.module.modules.player.autoshop.ModuleAutoShop
 import net.ccbluex.liquidbounce.features.module.modules.player.cheststealer.ModuleChestStealer
 import net.ccbluex.liquidbounce.features.module.modules.player.invcleaner.ModuleInventoryCleaner
@@ -189,7 +187,6 @@ import net.ccbluex.liquidbounce.features.module.modules.render.ModuleBedPlates
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleBetterInventory
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleBlockESP
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleBlockOutline
-import net.ccbluex.liquidbounce.features.module.modules.render.ModuleBreadcrumbs
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleChams
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleClickGui
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleCombineMobs
@@ -208,7 +205,6 @@ import net.ccbluex.liquidbounce.features.module.modules.render.ModuleItemTags
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleJumpEffect
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleLogoffSpot
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleMobOwners
-import net.ccbluex.liquidbounce.features.module.modules.render.ModuleNewChunks
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleNoBob
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleNoFov
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleNoHurtCam
@@ -220,7 +216,6 @@ import net.ccbluex.liquidbounce.features.module.modules.render.ModuleQuickPerspe
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleRadar
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleRotations
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleSilentHotbar
-import net.ccbluex.liquidbounce.features.module.modules.render.ModuleSkinChanger
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleSmoothCamera
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleStorageESP
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleTNTTimer
@@ -256,7 +251,6 @@ import net.ccbluex.liquidbounce.features.module.modules.world.ModuleStrongholdFi
 import net.ccbluex.liquidbounce.features.module.modules.world.ModuleSurround
 import net.ccbluex.liquidbounce.features.module.modules.world.ModuleTimer
 import net.ccbluex.liquidbounce.features.module.modules.world.autobuild.ModuleAutoBuild
-import net.ccbluex.liquidbounce.features.module.modules.world.autofarm.ModuleAutoFarm
 import net.ccbluex.liquidbounce.features.module.modules.world.fucker.ModuleFucker
 import net.ccbluex.liquidbounce.features.module.modules.world.nuker.ModuleNuker
 import net.ccbluex.liquidbounce.features.module.modules.world.packetmine.ModulePacketMine
@@ -460,7 +454,6 @@ object ModuleManager : EventListener, Collection<ClientModule> by modules {
             ModuleAutoArmor,
             ModuleAutoBow,
             ModuleAutoClicker,
-            AutoMobHeal,
             ModuleAutoLeave,
             ModuleAutoBuff,
             ModuleAutoRod,
@@ -494,7 +487,6 @@ object ModuleManager : EventListener, Collection<ClientModule> by modules {
             ModuleKick,
             ModuleMoreCarry,
             ModuleMultiActions,
-            ModuleNewChunks,
             ModuleNameCollector,
             ModuleNoPitchLimit,
             ModulePingSpoof,
@@ -611,7 +603,6 @@ object ModuleManager : EventListener, Collection<ClientModule> by modules {
             ModuleNoRotateSet,
             ModuleNoSlotSet,
             ModuleReach,
-            ModuleAutoQueue,
             ModuleSmartEat,
             ModuleReplenish,
             ModulePotionSpoof,
@@ -622,7 +613,6 @@ object ModuleManager : EventListener, Collection<ClientModule> by modules {
             ModuleBetterInventory,
             ModuleBlockESP,
             ModuleBlockOutline,
-            ModuleBreadcrumbs,
             ModuleCameraClip,
             ModuleClickGui,
             ModuleDamageParticles,
@@ -669,7 +659,6 @@ object ModuleManager : EventListener, Collection<ClientModule> by modules {
             ModuleZoom,
             ModuleItemChams,
             ModuleCrystalView,
-            ModuleSkinChanger,
             ModuleProtectionZones,
             ModuleCrosshair,
 
@@ -677,7 +666,6 @@ object ModuleManager : EventListener, Collection<ClientModule> by modules {
             ModuleAirPlace,
             ModuleAutoBuild,
             ModuleAutoDisable,
-            ModuleAutoFarm,
             ModuleAutoTool,
             ModuleCrystalAura,
             ModuleFastBreak,

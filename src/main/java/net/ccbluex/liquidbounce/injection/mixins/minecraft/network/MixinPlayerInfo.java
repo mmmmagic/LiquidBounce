@@ -24,8 +24,6 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.mojang.authlib.GameProfile;
 import net.ccbluex.liquidbounce.features.cosmetic.CapeCosmeticsManager;
 import net.ccbluex.liquidbounce.features.misc.HideAppearance;
-import net.ccbluex.liquidbounce.features.module.modules.render.ModuleSkinChanger;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.core.ClientAsset;
 import net.minecraft.resources.Identifier;
@@ -55,19 +53,6 @@ public abstract class MixinPlayerInfo {
             return original;
         }
 
-        if (ModuleSkinChanger.INSTANCE.getRunning()) {
-            var player = Minecraft.getInstance().player;
-            if (player != null) {
-                var playerListEntry = player.getPlayerInfo();
-                if (playerListEntry != null && playerListEntry.equals((PlayerInfo) (Object) this)) {
-                    var customSkinTextures = ModuleSkinChanger.INSTANCE.getSkinTextures();
-                    if (customSkinTextures != null) {
-                        original = customSkinTextures.get();
-                    }
-                }
-            }
-        }
-
         if (capeTexture != null) {
             return new PlayerSkin(original.body(), new ClientAsset.ResourceTexture(capeTexture, capeTexture),
                     original.elytra(), original.model(), original.secure());
@@ -79,7 +64,7 @@ public abstract class MixinPlayerInfo {
 
     @ModifyExpressionValue(method = "createSkinLookup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;isLocalPlayer(Ljava/util/UUID;)Z"))
     private static boolean liquid_bounce$allow_custom_skin(boolean b) {
-        return b || ModuleSkinChanger.INSTANCE.getRunning();
+        return b;
     }
 
     @Unique

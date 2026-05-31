@@ -45,8 +45,7 @@ import net.ccbluex.liquidbounce.integration.screen.impl.CustomSharedMinecraftScr
 import net.ccbluex.liquidbounce.integration.screen.impl.CustomStandaloneMinecraftScreen
 import net.ccbluex.liquidbounce.integration.screen.impl.InternetExplorerScreen
 import net.ccbluex.liquidbounce.integration.task.TaskProgressScreen
-import net.ccbluex.liquidbounce.integration.theme.Theme
-import net.ccbluex.liquidbounce.integration.theme.ThemeManager
+import net.ccbluex.liquidbounce.integration.ui.FixedClientUi
 import net.ccbluex.liquidbounce.utils.client.clientLogger
 import net.ccbluex.liquidbounce.utils.client.error.ErrorHandler
 import net.ccbluex.liquidbounce.utils.client.error.QuickFix
@@ -73,8 +72,6 @@ object ScreenManager : EventListener {
         private set
     val browserSettings = IntegrationBrowserSettings(0, ::restart)
 
-    var theme: Theme? = null
-        private set
     var screen: CustomScreen? = null
         private set
 
@@ -95,7 +92,7 @@ object ScreenManager : EventListener {
         priority = EventPriorityConvention.FIRST_PRIORITY
     ) {
         logger.info("Browser backend is ready. Initializing browser...")
-        val browser = ThemeManager.openInputAwareImmediate(settings = browserSettings)
+        val browser = FixedClientUi.openInputAwareImmediate(settings = browserSettings)
 
         waitUntilInitialized(browser)
         validateBrowserState(browser, true)
@@ -149,9 +146,9 @@ object ScreenManager : EventListener {
         openScreen(type = CustomScreenType.byName(name) ?: return)
     }
 
-    fun openScreen(theme: Theme? = ThemeManager.theme, type: CustomScreenType) {
-        if (theme == null) {
-            logger.warn("Theme is null, can't open virtual screen.")
+    fun openScreen(type: CustomScreenType) {
+        if (!FixedClientUi.isSupported(type)) {
+            logger.warn("Fixed UI does not support virtual screen ${type.routeName}.")
             return
         }
 
@@ -160,10 +157,7 @@ object ScreenManager : EventListener {
             return
         }
 
-        if (this.theme != theme) {
-            this.theme = theme
-            ThemeManager.updateImmediate(mainBrowser, type)
-        }
+        FixedClientUi.updateImmediate(mainBrowser, type)
 
         val customScreen = CustomScreen(type).apply { screen = this }
         screenAcknowledgement.reset()
@@ -194,7 +188,7 @@ object ScreenManager : EventListener {
             // That means we are likely still in the process of starting up.
             val mainBrowser = this.mainBrowser ?: return
             mainBrowser.close()
-            this.mainBrowser = ThemeManager.openInputAwareImmediate(settings = browserSettings)
+            this.mainBrowser = FixedClientUi.openInputAwareImmediate(settings = browserSettings)
         } catch (e: Exception) {
             logger.error("Failed to restart browser backend for screen integration.", e)
         }
@@ -216,9 +210,9 @@ object ScreenManager : EventListener {
         val browser = mainBrowser ?: return
         logger.info(
             "Reloading integration browser ${browser.javaClass.simpleName} " +
-                "to ${ThemeManager.getScreenLocation()}"
+                "to ${FixedClientUi.url(screen?.type)}"
         )
-        ThemeManager.updateImmediate(browser, screen?.type)
+        FixedClientUi.updateImmediate(browser, screen?.type)
     }
 
     fun restoreOriginalScreen() {
@@ -338,27 +332,20 @@ object ScreenManager : EventListener {
             return false
         }
 
-        val name = customScreenType.routeName
-        val route = runCatching {
-            ThemeManager.getScreenLocation(customScreenType, false)
-        }.getOrNull()
-
-        if (route == null) {
+        if (!FixedClientUi.isSupported(customScreenType)) {
             closeScreen()
             return false
         }
 
-        val theme = route.theme
-
         return when {
             // When we want to fully replace a screen.
-            theme.isScreenSupported(name) -> {
-                mc.setScreen(CustomSharedMinecraftScreen(customScreenType, theme, originalScreen = minecraftScreen))
+            FixedClientUi.isScreenSupported(customScreenType) -> {
+                mc.setScreen(CustomSharedMinecraftScreen(customScreenType, originalScreen = minecraftScreen))
                 true
             }
             // When we just want to overlay it.
-            theme.isOverlaySupported(name) -> {
-                openScreen(theme, customScreenType)
+            FixedClientUi.isOverlaySupported(customScreenType) -> {
+                openScreen(customScreenType)
                 false
             }
             // When there is nothing to show.

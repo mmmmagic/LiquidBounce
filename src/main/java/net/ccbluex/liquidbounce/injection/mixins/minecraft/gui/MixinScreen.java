@@ -20,11 +20,9 @@ package net.ccbluex.liquidbounce.injection.mixins.minecraft.gui;
 
 import net.ccbluex.liquidbounce.LiquidBounce;
 import net.ccbluex.liquidbounce.additions.ScreenAddition;
-import net.ccbluex.liquidbounce.features.misc.HideAppearance;
 import net.ccbluex.liquidbounce.features.module.modules.player.cheststealer.features.FeatureSilentScreen;
 import net.ccbluex.liquidbounce.features.module.modules.render.DoRender;
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleAntiBlind;
-import net.ccbluex.liquidbounce.integration.theme.ThemeManager;
 import net.ccbluex.liquidbounce.utils.text.RunnableClickEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -64,22 +62,8 @@ public abstract class MixinScreen implements ScreenAddition {
     @Shadow
     private boolean initialized;
 
-    @Inject(method = "init(II)V", at = @At("TAIL"))
-    private void objInit(CallbackInfo ci) {
-        if (!LiquidBounce.INSTANCE.isInitialized()) {
-            return;
-        }
-
-        ThemeManager.INSTANCE.loadBackgroundAsync();
-    }
-
     @Inject(method = "init()V", at = @At("TAIL"))
     protected void init(CallbackInfo ci) {
-        if (!LiquidBounce.INSTANCE.isInitialized()) {
-            return;
-        }
-
-        ThemeManager.INSTANCE.loadBackgroundAsync();
     }
 
     @Inject(method = "extractTransparentBackground", at = @At("HEAD"), cancellable = true)
@@ -93,19 +77,6 @@ public abstract class MixinScreen implements ScreenAddition {
     private void cancelRenderByChestStealer(CallbackInfo ci) {
         if (LiquidBounce.INSTANCE.isInitialized() && FeatureSilentScreen.INSTANCE.getShouldHide()) {
             ci.cancel();
-        }
-    }
-
-    @Inject(method = "extractBackground", at = @At("HEAD"), cancellable = true)
-    private void renderBackgroundTexture(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        if (this.minecraft != null && this.minecraft.level == null && !HideAppearance.INSTANCE.isHidingNow()) {
-            if (!LiquidBounce.INSTANCE.isInitialized()) {
-                return;
-            }
-
-            if (ThemeManager.INSTANCE.drawBackground(context, width, height, mouseX, mouseY, delta)) {
-                ci.cancel();
-            }
         }
     }
 

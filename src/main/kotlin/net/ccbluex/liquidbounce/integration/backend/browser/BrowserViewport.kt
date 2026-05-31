@@ -26,8 +26,11 @@ import org.joml.Vector2i
 import org.joml.Vector2ic
 import kotlin.math.ln
 
+private const val FULLSCREEN_REFERENCE_GUI_SCALE = 3.0F
+private const val FULLSCREEN_REFERENCE_CONTENT_SCALE = 0.65F
+
 /**
- * Represents a browser viewport with position, dimensions and rendering quality utilities
+ * Represents a browser viewport in Minecraft GUI-scaled coordinates.
  */
 @JvmRecord
 data class BrowserViewport(
@@ -49,34 +52,53 @@ data class BrowserViewport(
      * Get the scaled dimensions for rendering based on quality setting
      * @return Pair of (scaledWidth, scaledHeight)
      */
-    fun getScaledDimensions(quality: Float): Vector2ic =
-        Vector2i(
-            (width * quality).toInt().coerceAtLeast(1),
-            (height * quality).toInt().coerceAtLeast(1)
+    fun getScaledDimensions(quality: Float): Vector2ic {
+        val scale = getRenderScale(quality)
+        return Vector2i(
+            (width * scale).toInt().coerceAtLeast(1),
+            (height * scale).toInt().coerceAtLeast(1)
         )
+    }
 
     /**
-     * Calculate zoom level based on quality factor
+     * Calculate zoom level based on the render scale.
      */
-    fun getZoomLevel(quality: Float): Double = ln(quality.toDouble()) / ln(1.2)
+    fun getZoomLevel(quality: Float): Double {
+        val scale = getRenderScale(quality) * getContentScale()
+        return ln(scale.toDouble()) / ln(1.2)
+    }
 
     /**
-     * Transform mouse coordinates according to quality scaling
+     * Transform mouse coordinates according to the browser render scale
      * @return Pair of (scaledX, scaledY) coordinates
      */
-    fun transformMouse(mouseX: Double, mouseY: Double, quality: Float): Vector2ic =
-        Vector2i((mouseX * quality).toInt(), (mouseY * quality).toInt())
+    fun transformMouse(mouseX: Double, mouseY: Double, quality: Float): Vector2ic {
+        val scale = getRenderScale(quality)
+        return Vector2i((mouseX * scale).toInt(), (mouseY * scale).toInt())
+    }
+
+    private fun getRenderScale(quality: Float): Float =
+        quality * mc.window.guiScale.toFloat()
+
+    private fun getContentScale(): Float {
+        if (!fullScreen) {
+            return 1.0F
+        }
+
+        val guiScale = mc.window.guiScale.toFloat().coerceAtLeast(1.0F)
+        return FULLSCREEN_REFERENCE_CONTENT_SCALE * FULLSCREEN_REFERENCE_GUI_SCALE / guiScale
+    }
 
     companion object {
         /**
-         * Creates a fullscreen viewport matching the current window dimensions
+         * Creates a fullscreen viewport matching the current Minecraft GUI dimensions.
          */
         val FULLSCREEN
             get() = BrowserViewport(
                 x = 0,
                 y = 0,
-                width = mc.window.width,
-                height = mc.window.height,
+                width = mc.window.guiScaledWidth,
+                height = mc.window.guiScaledHeight,
                 fullScreen = true
             )
     }
