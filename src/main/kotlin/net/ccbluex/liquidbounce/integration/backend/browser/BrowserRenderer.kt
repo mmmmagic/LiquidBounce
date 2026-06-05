@@ -45,7 +45,7 @@ import java.lang.AutoCloseable
 class BrowserRenderer(val browser: Browser) : EventListener, AutoCloseable {
 
     private var rendered = false
-    private var fullscreenViewportSynced = false
+    private var fullscreenViewportState: FullscreenViewportState? = null
 
     @Suppress("unused")
     private val gameRenderHandler = handler<GameRenderEvent>(priority = MODEL_STATE) {
@@ -120,14 +120,21 @@ class BrowserRenderer(val browser: Browser) : EventListener, AutoCloseable {
         }
 
         val viewport = BrowserViewport.FULLSCREEN
-        if (!force && fullscreenViewportSynced &&
-            browser.viewport.width == viewport.width && browser.viewport.height == viewport.height
-        ) {
+        val state = FullscreenViewportState(
+            width = viewport.width,
+            height = viewport.height,
+            guiScale = mc.window.guiScale,
+            quality = GlobalBrowserSettings.quality,
+            zoomLevel = viewport.getZoomLevel(GlobalBrowserSettings.quality)
+        )
+
+        if (!force && fullscreenViewportState == state) {
             return
         }
 
         browser.update(viewport.width, viewport.height)
-        fullscreenViewportSynced = true
+        browser.invalidate()
+        fullscreenViewportState = state
     }
 
     @Suppress("LongParameterList")
@@ -157,3 +164,11 @@ class BrowserRenderer(val browser: Browser) : EventListener, AutoCloseable {
     }
 
 }
+
+private data class FullscreenViewportState(
+    val width: Int,
+    val height: Int,
+    val guiScale: Int,
+    val quality: Float,
+    val zoomLevel: Double
+)

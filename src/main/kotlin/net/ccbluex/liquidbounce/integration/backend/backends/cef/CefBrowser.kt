@@ -33,6 +33,7 @@ import net.ccbluex.liquidbounce.mcef.MCEF
 import net.ccbluex.liquidbounce.mcef.cef.MCEFBrowser
 import net.ccbluex.liquidbounce.mcef.cef.MCEFBrowserSettings
 import net.ccbluex.liquidbounce.utils.client.clientLogger
+import net.ccbluex.liquidbounce.utils.client.mc
 import org.apache.logging.log4j.Logger
 import org.joml.component1
 import org.joml.component2
@@ -49,6 +50,7 @@ class CefBrowser(
 
     internal val browserApi: MCEFBrowser
     private val logger: Logger
+    private var lastZoomLevel: Double? = null
 
     init {
         require(url.isNotEmpty()) { "URL cannot be empty." }
@@ -85,7 +87,9 @@ class CefBrowser(
             browserApi.loadURL(url)
 
             val quality = GlobalBrowserSettings.quality
-            browserApi.zoomLevel = viewport.getZoomLevel(quality)
+            val zoomLevel = viewport.getZoomLevel(quality)
+            browserApi.zoomLevel = zoomLevel
+            lastZoomLevel = zoomLevel
             field = true
 
             logger.info("Initialized Browser API")
@@ -98,8 +102,10 @@ class CefBrowser(
             when (value) {
                 is BrowserState.Loading ->
                     logger.info("Started loading (url='${url}')")
-                is BrowserState.Success ->
+                is BrowserState.Success -> {
                     logger.info("Finished loading (url='${url}', httpStatusCode=${value.httpStatusCode})")
+                    updateLoadedViewport()
+                }
                 is BrowserState.Failure ->
                     logger.warn("Failed to load " +
                         "(url='${value.failedUrl}', errorCode=${value.errorCode}, errorText=${value.errorText})")
@@ -116,10 +122,15 @@ class CefBrowser(
             val zoomLevel = value.getZoomLevel(quality)
 
             val viewRect = browserApi.getViewRect(null)
+            val zoomChanged = lastZoomLevel != zoomLevel
             browserApi.zoomLevel = zoomLevel
+            lastZoomLevel = zoomLevel
 
             // Check if the browser dimensions have changed
             if (viewRect.width == scaledWidth && viewRect.height == scaledHeight) {
+                if (zoomChanged) {
+                    browserApi.clear()
+                }
                 return
             }
 
@@ -207,6 +218,17 @@ class CefBrowser(
 
     override fun invalidate() {
         browserApi.clear()
+    }
+
+    private fun updateLoadedViewport() {
+        if (!viewport.fullScreen) {
+            return
+        }
+
+        mc.execute {
+            viewport = BrowserViewport.FULLSCREEN
+            invalidate()
+        }
     }
 
     override fun toString() = "CefBrowser(" +

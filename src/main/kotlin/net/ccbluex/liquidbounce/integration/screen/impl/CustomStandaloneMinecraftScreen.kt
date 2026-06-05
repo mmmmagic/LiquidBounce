@@ -20,6 +20,8 @@
 package net.ccbluex.liquidbounce.integration.screen.impl
 
 import net.ccbluex.liquidbounce.additions.setPosition
+import net.ccbluex.liquidbounce.event.EventManager
+import net.ccbluex.liquidbounce.event.events.VirtualScreenEvent
 import net.ccbluex.liquidbounce.integration.screen.CustomScreenType
 import net.ccbluex.liquidbounce.integration.screen.ScreenManager
 import net.ccbluex.liquidbounce.integration.ui.FixedClientUi
@@ -57,6 +59,7 @@ class CustomStandaloneMinecraftScreen(
     }
 
     override fun onClose() {
+        EventManager.callEvent(VirtualScreenEvent(screenType, action = VirtualScreenEvent.Action.CLOSE))
         browser.visible = false
 
         mouseX = mc.mouseHandler.xpos()

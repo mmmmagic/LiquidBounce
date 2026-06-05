@@ -22,6 +22,45 @@
   let eventSocketReady = false;
   let hudSpaceSeparatedNames = true;
   let hudModules = [];
+  let hudTarget = null;
+  let hudTargetVisible = false;
+  let hudTargetHideTimer = null;
+  let hudArrayListSettings = {
+    enabled: true,
+    showTags: true,
+    rightSide: true,
+    rightAligned: true,
+    descendingOrder: true,
+    horizontalOffset: 10,
+    verticalOffset: 10,
+    style: "Classic",
+    fontSize: 14,
+    horizontalPadding: 8,
+    verticalPadding: 5,
+    gap: 3,
+    outlineWidth: 1,
+    backgroundColor: "rgba(7, 9, 13, 0.62)",
+    textColor: "#f1f5f9",
+    tagColor: "#9aa4b2",
+    borderColor: "#14b8a6",
+    accentColor: "#14b8a6",
+    outlineColor: "#14b8a6",
+    shadow: false
+  };
+  let hudTargetSettings = {
+    enabled: true,
+    horizontalOffset: 20,
+    verticalOffset: 0,
+    hideDelay: 1000,
+    showArmor: true,
+    showAbsorption: true,
+    backgroundColor: "rgba(7, 9, 13, 0.745)",
+    textColor: "#f1f5f9",
+    dimmedTextColor: "#9aa4b2",
+    healthProgressColor: "#14b8a6",
+    armorPointBackgroundColor: "#404854",
+    armorPointActiveColor: "#2dd4bf"
+  };
   let textMeasureContext = null;
   const socketListeners = new Map();
 
@@ -54,6 +93,23 @@
     api("/screen", { method: "DELETE" }).catch(() => {});
   };
 
+  const resetClickGuiState = () => {
+    query = "";
+
+    if (document.getElementById("search")) {
+      renderClickGui();
+    }
+  };
+
+  const watchClickGuiClose = () => {
+    connectEventSocket();
+    addSocketListener("virtualScreen", (event) => {
+      if ((event?.screenName ?? event?.type) === "clickgui" && event?.action === "close") {
+        resetClickGuiState();
+      }
+    });
+  };
+
   const renderHud = async () => {
     app.className = "app";
     app.innerHTML = `
@@ -63,6 +119,7 @@
         <div class="hud-line" id="hud-player">Waiting for player</div>
       </section>
       <section class="hud-arraylist" id="hud-arraylist"></section>
+      <section class="targethud" id="targethud" hidden></section>
     `;
     const refresh = async () => {
       try {
@@ -80,22 +137,78 @@
     connectEventSocket();
     addSocketListener("moduleToggle", refreshHudModules);
     addSocketListener("refreshArrayList", refreshHudModules);
+    addSocketListener("targetChange", handleTargetChange);
     addSocketListener("spaceSeperatedNamesChange", (event) => {
       hudSpaceSeparatedNames = event?.value ?? hudSpaceSeparatedNames;
       renderHudArrayList();
     });
-    loadHudNameStyle().then(renderHudArrayList);
+    loadHudSettings().then(() => {
+      renderHudArrayList();
+      renderTargetHud();
+    });
     refreshHudModules();
     refresh();
     setInterval(refresh, 1000);
     setInterval(refreshHudModules, 2500);
   };
 
-  const loadHudNameStyle = async () => {
+  const loadHudSettings = async () => {
     try {
       const hudSettings = await api("/modules/settings?name=HUD");
-      const setting = (hudSettings.value || []).find((entry) => entry.name === "SpaceSeperatedNames");
+      const values = hudSettings.value || [];
+      const setting = values.find((entry) => entry.name === "SpaceSeperatedNames");
+      const arrayList = values.find((entry) => entry.name === "ArrayList");
+      const targetHud = values.find((entry) => entry.name === "TargetHud");
+      const arrayListValues = arrayList?.value || [];
+      const targetHudValues = targetHud?.value || [];
+      const getSetting = (name, fallback) =>
+        arrayListValues.find((entry) => entry.name === name)?.value ?? fallback;
+      const getTargetHudSetting = (name, fallback) =>
+        targetHudValues.find((entry) => entry.name === name)?.value ?? fallback;
+      const styleSetting = arrayListValues.find((entry) => entry.name === "Style");
+      const styleName = styleSetting?.active || "Classic";
+      const styleValues = styleSetting?.choices?.[styleName]?.value || [];
+      const getStyleSetting = (name, fallback) =>
+        styleValues.find((entry) => entry.name === name)?.value ?? fallback;
+
       hudSpaceSeparatedNames = setting?.value ?? hudSpaceSeparatedNames;
+      hudArrayListSettings = {
+        enabled: arrayList?.value?.find?.((entry) => entry.name === "Enabled")?.value ?? arrayList?.enabled ?? true,
+        showTags: getSetting("ShowTags", true),
+        rightSide: getSetting("RightSide", true),
+        rightAligned: getSetting("RightAligned", true),
+        descendingOrder: getSetting("DescendingOrder", true),
+        horizontalOffset: getSetting("HorizontalOffset", 10),
+        verticalOffset: getSetting("VerticalOffset", 10),
+        style: styleName,
+        fontSize: getStyleSetting("FontSize", styleName === "Compact" ? 12 : 14),
+        horizontalPadding: getStyleSetting("HorizontalPadding", styleName === "Minimal" ? 2 : styleName === "Compact" ? 6 : 8),
+        verticalPadding: getStyleSetting("VerticalPadding", styleName === "Minimal" ? 2 : styleName === "Compact" ? 3 : 5),
+        gap: getStyleSetting("Gap", styleName === "Compact" ? 2 : 3),
+        outlineWidth: getStyleSetting("OutlineWidth", 1),
+        backgroundColor: colorToCss(getStyleSetting("BackgroundColor", styleName === "Outline" ? 134263053 : -16441079)),
+        textColor: colorToCss(getStyleSetting("TextColor", -1)),
+        tagColor: colorToCss(getStyleSetting("TagColor", -6642574)),
+        borderColor: colorToCss(getStyleSetting("BorderColor", -15419226)),
+        accentColor: colorToCss(getStyleSetting("AccentColor", -15419226)),
+        outlineColor: colorToCss(getStyleSetting("OutlineColor", -15419226)),
+        shadow: getStyleSetting("Shadow", styleName === "Minimal")
+      };
+      hudTargetSettings = {
+        enabled: targetHudValues.find((entry) => entry.name === "Enabled")?.value ?? targetHud?.enabled ?? true,
+        horizontalOffset: getTargetHudSetting("HorizontalOffset", 20),
+        verticalOffset: getTargetHudSetting("VerticalOffset", 0),
+        hideDelay: getTargetHudSetting("HideDelay", 1000),
+        showArmor: getTargetHudSetting("ShowArmor", true),
+        showAbsorption: getTargetHudSetting("ShowAbsorption", true),
+        backgroundColor: colorToCss(getTargetHudSetting("BackgroundColor", -1106835187)),
+        textColor: colorToCss(getTargetHudSetting("TextColor", -1)),
+        dimmedTextColor: colorToCss(getTargetHudSetting("DimmedTextColor", -6642574)),
+        healthProgressColor: colorToCss(getTargetHudSetting("HealthProgressColor", -15419226)),
+        armorPointBackgroundColor: colorToCss(getTargetHudSetting("ArmorPointBackgroundColor", -12564396)),
+        armorPointActiveColor: colorToCss(getTargetHudSetting("ArmorPointActiveColor", -13773633))
+      };
+      renderTargetHud();
     } catch (_) {
       hudSpaceSeparatedNames = true;
     }
@@ -103,11 +216,14 @@
 
   const refreshHudModules = async () => {
     try {
+      await loadHudSettings();
       hudModules = await api("/modules");
       renderHudArrayList();
+      renderTargetHud();
     } catch (_) {
       hudModules = [];
       renderHudArrayList();
+      renderTargetHud();
     }
   };
 
@@ -117,25 +233,151 @@
       return;
     }
 
+    const settings = hudArrayListSettings;
+    list.hidden = !settings.enabled;
+    list.style.top = `${settings.verticalOffset}px`;
+    list.style.right = settings.rightSide ? `${settings.horizontalOffset}px` : "auto";
+    list.style.left = settings.rightSide ? "auto" : `${settings.horizontalOffset}px`;
+    list.style.alignItems = settings.rightAligned ? "flex-end" : "flex-start";
+    list.style.textAlign = settings.rightAligned ? "right" : "left";
+    list.style.gap = `${settings.gap}px`;
+
+    if (!settings.enabled) {
+      list.innerHTML = "";
+      return;
+    }
+
     const activeModules = hudModules
       .filter((mod) => mod.enabled && !mod.hidden)
       .map((mod) => ({
         ...mod,
         displayName: formatHudModuleName(mod.name),
-        tagText: mod.tag == null || mod.tag === "" ? "" : String(mod.tag)
+        tagText: settings.showTags && mod.tag != null && mod.tag !== "" ? String(mod.tag) : ""
       }))
       .map((mod) => ({
         ...mod,
         width: measureTextWidth(`${mod.displayName}${mod.tagText ? ` ${mod.tagText}` : ""}`)
       }))
-      .sort((a, b) => b.width - a.width || a.displayName.localeCompare(b.displayName));
+      .sort((a, b) => {
+        const widthDiff = settings.descendingOrder ? b.width - a.width : a.width - b.width;
+        return widthDiff || a.displayName.localeCompare(b.displayName);
+      });
 
     list.innerHTML = activeModules.map((mod) => `
-      <div class="hud-arraylist-module" title="${escapeHtml(mod.name)}">
+      <div class="hud-arraylist-module hud-arraylist-${settings.style.toLowerCase()}" title="${escapeHtml(mod.name)}" style="${hudArrayListItemStyle()}">
         <span>${escapeHtml(mod.displayName)}</span>
-        ${mod.tagText ? `<span class="hud-arraylist-tag"> ${escapeHtml(mod.tagText)}</span>` : ""}
+        ${mod.tagText ? `<span class="hud-arraylist-tag" style="color: ${settings.tagColor}"> ${escapeHtml(mod.tagText)}</span>` : ""}
       </div>
     `).join("");
+  };
+
+  const handleTargetChange = (event) => {
+    hudTarget = event?.target || null;
+    hudTargetVisible = Boolean(hudTarget);
+    clearTimeout(hudTargetHideTimer);
+
+    if (hudTarget && hudTargetSettings.hideDelay > 0) {
+      hudTargetHideTimer = setTimeout(() => {
+        hudTargetVisible = false;
+        renderTargetHud();
+      }, hudTargetSettings.hideDelay);
+    }
+
+    renderTargetHud();
+  };
+
+  const renderTargetHud = () => {
+    const element = document.getElementById("targethud");
+    if (!element) {
+      return;
+    }
+
+    const settings = hudTargetSettings;
+    element.hidden = !settings.enabled || !hudTargetVisible || !hudTarget;
+    element.style.left = `calc(50% + ${Number(settings.horizontalOffset) || 0}px)`;
+    element.style.top = `calc(50% + ${Number(settings.verticalOffset) || 0}px)`;
+    element.style.setProperty("--targethud-background-color", settings.backgroundColor);
+    element.style.setProperty("--targethud-text-color", settings.textColor);
+    element.style.setProperty("--targethud-text-dimmed-color", settings.dimmedTextColor);
+    element.style.setProperty("--targethud-health-progress-color", settings.healthProgressColor);
+    element.style.setProperty("--targethud-armor-point-background-color", settings.armorPointBackgroundColor);
+    element.style.setProperty("--targethud-armor-point-active-color", settings.armorPointActiveColor);
+
+    if (element.hidden) {
+      element.innerHTML = "";
+      return;
+    }
+
+    const target = hudTarget;
+    const health = safeNumber(target.actualHealth);
+    const absorption = safeNumber(target.absorption);
+    const maxHealth = Math.max(1, safeNumber(target.maxHealth) + absorption);
+    const totalHealth = Math.max(0, Math.min(maxHealth, health + absorption));
+    const healthWidth = Math.ceil((totalHealth / maxHealth) * 100);
+    const armorItems = (Array.isArray(target.armorItems) ? target.armorItems : [])
+      .filter((item) => item && !item.empty && Number(item.count || 0) > 0)
+      .reverse();
+
+    element.innerHTML = `
+      <div class="targethud-main">
+        <div class="targethud-avatar">
+          <img src="/api/v1/client/resource/skin?uuid=${encodeURIComponent(target.uuid || "")}" alt="">
+        </div>
+        <div class="targethud-name">${escapeHtml(target.username || "Target")}</div>
+        <div class="targethud-stats">
+          ${renderTargetHudStat(Math.floor(health), "health")}
+          ${settings.showAbsorption && absorption > 0 ? renderTargetHudStat(Math.floor(absorption), "absorption") : ""}
+          ${renderTargetHudStat(Math.floor(safeNumber(target.armor)), "armor")}
+        </div>
+        ${settings.showArmor ? `
+          <div class="targethud-armor">
+            ${armorItems.map(renderTargetHudArmorItem).join("")}
+          </div>
+        ` : ""}
+      </div>
+      <div class="targethud-health-progress">
+        <div class="targethud-health-thumb" style="width: ${healthWidth}%;"></div>
+      </div>
+    `;
+  };
+
+  const renderTargetHudStat = (value, type) => `
+    <div class="targethud-stat">
+      <span>${escapeHtml(value)}</span>
+      <span class="targethud-stat-icon targethud-stat-${type}" aria-hidden="true"></span>
+    </div>
+  `;
+
+  const renderTargetHudArmorItem = (item) => {
+    const damagePoints = armorDamagePoints(item);
+    return `
+      <div class="targethud-armor-item" title="${escapeHtml(item.identifier || "")}">
+        <img src="${itemTextureUrl(item.identifier)}" alt="">
+        <div class="targethud-durability">
+          ${Array.from({ length: 10 }, (_, index) => {
+            const point = 10 - index;
+            return `<span class="targethud-durability-point ${point <= damagePoints ? "active" : ""}"></span>`;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  };
+
+  const safeNumber = (value) => {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : 0;
+  };
+
+  const itemTextureUrl = (identifier) =>
+    `/api/v1/client/resource/itemTexture?id=${encodeURIComponent(identifier || "minecraft:air")}`;
+
+  const armorDamagePoints = (item) => {
+    const maxDamage = safeNumber(item.maxDamage);
+    if (maxDamage <= 0) {
+      return 10;
+    }
+
+    return Math.max(0, Math.min(10, Math.ceil(10 - (safeNumber(item.damage) / maxDamage) * 10)));
   };
 
   const categories = () => Array.from(new Set(modules.map((mod) => mod.category))).sort();
@@ -778,6 +1020,7 @@
       toggleMultiChoice(setting, element.dataset.choice);
     } else if (action === "choice") {
       setting.active = element.dataset.choice ?? element.value;
+      setting.value = setting.choices?.[setting.active]?.value || [];
       openDropdownPath = null;
     } else if (action === "bind") {
       startBindCapture(setting);
@@ -924,7 +1167,7 @@
     bindingSetting = null;
     stopBindCapture();
     saveSettingsDebounced(0);
-    renderModuleSettings();
+    renderModuleSettingsPreservingScroll();
   };
 
   const connectEventSocket = () => {
@@ -982,7 +1225,7 @@
     saving = true;
     saveError = "";
     if (!preserveFocus) {
-      renderModuleSettings();
+      renderModuleSettingsPreservingScroll();
     } else {
       refreshSaveState();
     }
@@ -998,7 +1241,7 @@
     } finally {
       saving = false;
       if (!preserveFocus) {
-        renderModuleSettings();
+        renderModuleSettingsPreservingScroll();
       } else {
         refreshSaveState();
       }
@@ -1189,11 +1432,79 @@
     if (!textMeasureContext) {
       textMeasureContext = document.createElement("canvas").getContext("2d");
       if (textMeasureContext) {
-        textMeasureContext.font = "500 14px Inter, Segoe UI, Roboto, Arial, sans-serif";
+        textMeasureContext.font = `500 ${hudArrayListSettings.fontSize}px Inter, Segoe UI, Roboto, Arial, sans-serif`;
       }
     }
 
+    if (textMeasureContext) {
+      textMeasureContext.font = `500 ${hudArrayListSettings.fontSize}px Inter, Segoe UI, Roboto, Arial, sans-serif`;
+    }
+
     return textMeasureContext?.measureText(text).width ?? String(text).length * 8;
+  };
+
+  const hudArrayListItemStyle = () => {
+    const settings = hudArrayListSettings;
+    const borderSide = settings.rightSide ? "border-left" : "border-right";
+    const radius = settings.rightSide ? "4px 0 0 4px" : "0 4px 4px 0";
+    const base = [
+      `color: ${settings.textColor}`,
+      `font-size: ${settings.fontSize}px`,
+      `padding: ${settings.verticalPadding}px ${settings.horizontalPadding}px`,
+      `text-shadow: ${settings.shadow ? "0 1px 3px rgba(0, 0, 0, 0.75)" : "none"}`
+    ];
+
+    if (settings.style === "Compact") {
+      return [
+        ...base,
+        `background: ${settings.backgroundColor}`,
+        `border-bottom: 2px solid ${settings.accentColor}`,
+        "border-radius: 3px"
+      ].join("; ");
+    }
+
+    if (settings.style === "Outline") {
+      return [
+        ...base,
+        `background: ${settings.backgroundColor}`,
+        `border: ${settings.outlineWidth}px solid ${settings.outlineColor}`,
+        `box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05)`,
+        "border-radius: 4px"
+      ].join("; ");
+    }
+
+    if (settings.style === "Minimal") {
+      return [
+        ...base,
+        "background: transparent",
+        "border: 0",
+        "border-radius: 0"
+      ].join("; ");
+    }
+
+    return [
+      ...base,
+      `background: ${settings.backgroundColor}`,
+      `${borderSide}: 4px solid ${settings.borderColor}`,
+      `border-radius: ${radius}`
+    ].join("; ");
+  };
+
+  const colorToCss = (value) => {
+    const number = Number(value ?? 0);
+    const unsigned = number >>> 0;
+    const alpha = (unsigned >>> 24) & 255;
+    const red = (unsigned >>> 16) & 255;
+    const green = (unsigned >>> 8) & 255;
+    const blue = unsigned & 255;
+
+    if (alpha >= 255) {
+      return `#${red.toString(16).padStart(2, "0")}${green.toString(16).padStart(2, "0")}${blue
+        .toString(16)
+        .padStart(2, "0")}`;
+    }
+
+    return `rgba(${red}, ${green}, ${blue}, ${(alpha / 255).toFixed(3)})`;
   };
 
   const title = (value) => `${value.slice(0, 1).toUpperCase()}${value.slice(1).toLowerCase()}`;
@@ -1210,6 +1521,7 @@
   } else if (route === "clickgui") {
     app.className = "screen";
     app.innerHTML = `<div class="state">Loading modules...</div>`;
+    watchClickGuiClose();
     loadModules().catch((error) => {
       app.innerHTML = `<div class="state">Failed to load modules: ${escapeHtml(error.message)}</div>`;
     });
